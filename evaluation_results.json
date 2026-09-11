@@ -1,0 +1,29 @@
+{
+    "model": "TF-IDF + Logistic Regression",
+    "dataset_size": 9303,
+    "training_size": 7442,
+    "testing_size": 1861,
+    "normal_messages": 4516,
+    "scam_messages": 4787,
+    "accuracy": 92.69,
+    "normal": {
+        "precision": 98.0,
+        "recall": 86.71,
+        "f1": 92.01
+    },
+    "scam": {
+        "precision": 88.7,
+        "recall": 98.33,
+        "f1": 93.27
+    },
+    "confusion_matrix": [
+        [
+            783,
+            120
+        ],
+        [
+            16,
+            942
+        ]
+    ]
+}

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ScamShield AI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="shell">
+
+    <!-- NAVBAR -->
+    <nav>
+        <div class="brand">
+            🛡️ ScamShield <span>AI</span>
+        </div>
+
+        <div class="tag">
+            Explainable scam detection
+        </div>
+    </nav>
+
+
+    <!-- HERO -->
+    <section class="hero">
+
+        <div class="eyebrow">
+            AI-POWERED PROTECTION
+        </div>
+
+        <h1>
+            Don't get scammed.<br>
+            Know before you act.
+        </h1>
+
+        <p class="sub">
+            Analyze suspicious SMS messages, emails, job offers,
+            payment requests and links using machine learning
+            and explainable security signals.
+        </p>
+
+    </section>
+
+
+    <!-- ANALYZER CARD -->
+    <section class="card">
+
+        <div class="label-row">
+
+            <label>
+                MESSAGE RISK ANALYZER
+            </label>
+
+            <button onclick="loadExample()">
+                Load example
+            </button>
+
+        </div>
+
+
+        <textarea
+            id="message"
+            placeholder="Paste an SMS, email, job offer, payment request, or suspicious URL here..."></textarea>
+
+
+        <div class="actions">
+
+            <button
+                class="primary"
+                id="analyzeBtn"
+                onclick="analyzeMessage()">
+                Analyze message
+            </button>
+
+            <button
+                class="secondary"
+                onclick="clearMessage()">
+                Clear
+            </button>
+
+        </div>
+
+
+        <p class="fine">
+            Privacy-friendly demo: analysis happens on your local Flask server.
+            Do not paste passwords, OTPs, or other secrets.
+        </p>
+
+    </section>
+
+
+    <!-- RESULT -->
+    <section
+        class="result hidden"
+        id="resultBox">
+
+
+        <!-- SCORE -->
+        <div class="score-card">
+
+            <div class="ring" id="riskRing">
+
+                <div>
+                    <strong id="score">
+                        —
+                    </strong>
+
+                    <small>
+                        /100
+                    </small>
+                </div>
+
+            </div>
+
+
+            <div>
+
+                <div class="eyebrow">
+                    RISK ASSESSMENT
+                </div>
+
+                <h2 id="verdict">
+                    —
+                </h2>
+
+                <!-- NEW: SCAM CATEGORY -->
+                <p id="category"
+                   style="font-weight:700; color:#8fa5ff; margin:0 0 8px;">
+                </p>
+
+                <p id="summary">
+                    Analysis result will appear here.
+                </p>
+
+                <div class="model" id="modelInfo">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- TWO COLUMN GRID -->
+        <div class="grid">
+
+
+            <!-- REASONS -->
+            <div class="panel">
+
+                <h3>
+                    Why it was flagged
+                </h3>
+
+                <ul id="reasons">
+                </ul>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+            <div class="panel">
+
+                <h3>
+                    What to do
+                </h3>
+
+                <ul id="actions">
+                </ul>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- LINKS -->
+        <div class="panel">
+
+            <h3>
+                Links found
+            </h3>
+
+            <div id="links">
+            </div>
+
+        </div>
+
+
+    </section>
+
+</div>
+
+
+<script>
+
+
+async function analyzeMessage() {
+
+    const messageInput =
+        document.getElementById("message");
+
+    const message =
+        messageInput.value.trim();
+
+
+    if (!message) {
+
+        alert("Please enter a message first.");
+
+        return;
+    }
+
+
+    const button =
+        document.getElementById("analyzeBtn");
+
+
+    button.disabled = true;
+
+    button.innerText =
+        "Analyzing...";
+
+
+    try {
+
+        const response =
+            await fetch("/api/analyze", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    message: message
+                })
+
+            });
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                data.error ||
+                "Something went wrong."
+            );
+
+            return;
+        }
+
+
+        showResults(data);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Could not connect to ScamShield. " +
+            "Make sure Flask is running."
+        );
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+        button.innerText =
+            "Analyze message";
+
+    }
+
+}
+
+
+function showResults(data) {
+
+    const resultBox =
+        document.getElementById("resultBox");
+
+
+    resultBox.classList.remove("hidden");
+
+
+    // SCORE
+
+    const score =
+        Number(data.score || 0);
+
+
+    document.getElementById("score")
+        .innerText = score;
+
+
+    // VERDICT
+
+    document.getElementById("verdict")
+        .innerText =
+            data.verdict || "Unknown";
+
+
+    // CATEGORY
+
+    const category =
+        data.scam_category ||
+        "No category detected";
+
+
+    document.getElementById("category")
+        .innerText =
+            "Category: " + category;
+
+
+    // SUMMARY
+
+    let summary = "";
+
+    if (score >= 70) {
+
+        summary =
+            "This message contains multiple signals commonly associated with scams.";
+
+    }
+
+    else if (score >= 40) {
+
+        summary =
+            "This message contains some suspicious signals. Verify before taking action.";
+
+    }
+
+    else {
+
+        summary =
+            "No major scam signals were detected in this message.";
+
+    }
+
+
+    document.getElementById("summary")
+        .innerText = summary;
+
+
+    // MODEL INFO
+
+    const ml =
+        Number(
+            data.ml_probability ??
+            data.ml_score ??
+            0
+        );
+
+    const rule =
+        Number(data.rule_score || 0);
+
+
+    document.getElementById("modelInfo")
+        .innerText =
+            "ML probability: " +
+            ml.toFixed(1) +
+            "%  •  Rule score: " +
+            rule.toFixed(0);
+
+
+    // RING
+
+    const ring =
+        document.getElementById("riskRing");
+
+
+    ring.classList.remove(
+        "high",
+        "medium",
+        "low"
+    );
+
+
+    if (score >= 70) {
+
+        ring.classList.add("high");
+
+    }
+
+    else if (score >= 40) {
+
+        ring.classList.add("medium");
+
+    }
+
+    else {
+
+        ring.classList.add("low");
+
+    }
+
+
+    // REASONS
+
+    const reasonsList =
+        document.getElementById("reasons");
+
+
+    reasonsList.innerHTML = "";
+
+
+    if (
+        data.reasons &&
+        data.reasons.length > 0
+    ) {
+
+        data.reasons.forEach(function(reason) {
+
+            const li =
+                document.createElement("li");
+
+            li.innerText = reason;
+
+            reasonsList.appendChild(li);
+
+        });
+
+    }
+
+    else {
+
+        const li =
+            document.createElement("li");
+
+        li.innerText =
+            "No major warning signals detected.";
+
+        reasonsList.appendChild(li);
+
+    }
+
+
+    // ACTIONS
+
+    const actionsList =
+        document.getElementById("actions");
+
+
+    actionsList.innerHTML = "";
+
+
+    const recommendations =
+        data.recommendations || [];
+
+
+    if (recommendations.length > 0) {
+
+        recommendations.forEach(function(action) {
+
+            const li =
+                document.createElement("li");
+
+            li.innerText =
+                action;
+
+            actionsList.appendChild(li);
+
+        });
+
+    }
+
+    else {
+
+        const li =
+            document.createElement("li");
+
+        li.innerText =
+            "Stay cautious and verify the sender.";
+
+        actionsList.appendChild(li);
+
+    }
+
+
+    // LINKS
+
+    const linksContainer =
+        document.getElementById("links");
+
+
+    linksContainer.innerHTML = "";
+
+
+    const urls =
+        data.urls || [];
+
+
+    if (urls.length > 0) {
+
+        urls.forEach(function(urlData) {
+
+            const div =
+                document.createElement("div");
+
+            div.className = "link";
+
+
+            const link =
+                document.createElement("a");
+
+            link.href =
+                urlData.url || urlData;
+
+            link.target =
+                "_blank";
+
+            link.rel =
+                "noopener noreferrer";
+
+            link.innerText =
+                urlData.url || urlData;
+
+
+            div.appendChild(link);
+
+            linksContainer.appendChild(div);
+
+        });
+
+    }
+
+    else {
+
+        const div =
+            document.createElement("div");
+
+        div.className = "link";
+
+
+        const span =
+            document.createElement("span");
+
+        span.innerText =
+            "No links found.";
+
+        div.appendChild(span);
+
+        linksContainer.appendChild(div);
+
+    }
+
+}
+
+
+function clearMessage() {
+
+    document.getElementById("message")
+        .value = "";
+
+
+    document.getElementById("resultBox")
+        .classList.add("hidden");
+
+
+    document.getElementById("score")
+        .innerText = "—";
+
+
+    document.getElementById("verdict")
+        .innerText = "—";
+
+
+    document.getElementById("category")
+        .innerText = "";
+
+
+    document.getElementById("summary")
+        .innerText =
+            "Analysis result will appear here.";
+
+
+    document.getElementById("reasons")
+        .innerHTML = "";
+
+
+    document.getElementById("actions")
+        .innerHTML = "";
+
+
+    document.getElementById("links")
+        .innerHTML = "";
+
+}
+
+
+function loadExample() {
+
+    document.getElementById("message")
+        .value =
+        "Congratulations! You have won ₹50,000. Pay ₹500 processing fee to claim your reward.";
+
+}
+
+
+</script>
+
+</body>
+
+</html>

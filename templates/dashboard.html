@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ScamShield AI — Model Evaluation</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #0b1020;
+            color: #edf2ff;
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        .shell {
+            max-width: 1100px;
+            margin: auto;
+            padding: 28px 20px 80px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 55px;
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 20px;
+        }
+
+        .brand span {
+            opacity: .55;
+        }
+
+        .back {
+            color: #8fa5ff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .hero {
+            margin-bottom: 35px;
+        }
+
+        .eyebrow {
+            font-size: 12px;
+            letter-spacing: .16em;
+            color: #8291b5;
+            font-weight: 800;
+        }
+
+        h1 {
+            font-size: clamp(38px, 6vw, 60px);
+            line-height: 1.05;
+            margin: 10px 0 15px;
+            letter-spacing: -.04em;
+        }
+
+        .sub {
+            color: #aeb8d0;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .metric {
+            background: #121a2e;
+            border: 1px solid #273250;
+            border-radius: 18px;
+            padding: 22px;
+        }
+
+        .metric-label {
+            color: #8291b5;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 30px;
+            font-weight: 800;
+        }
+
+        .panel {
+            background: #121a2e;
+            border: 1px solid #273250;
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 16px;
+        }
+
+        .panel h2 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .model-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .info {
+            background: #0c1325;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .info-label {
+            color: #8291b5;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .info-value {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .bar-row {
+            margin: 20px 0;
+        }
+
+        .bar-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .bar {
+            height: 10px;
+            background: #0c1325;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: #7186ff;
+            border-radius: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #273250;
+        }
+
+        th {
+            color: #8291b5;
+            font-size: 13px;
+        }
+
+        td {
+            font-weight: 700;
+        }
+
+        .matrix td {
+            font-size: 22px;
+        }
+
+        .matrix-label {
+            color: #aeb8d0;
+            font-size: 13px;
+        }
+
+        @media(max-width: 750px) {
+
+            .metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .model-box {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
+        @media(max-width: 500px) {
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                margin-bottom: 40px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="shell">
+
+
+    <!-- NAVIGATION -->
+
+    <nav>
+
+        <div class="brand">
+
+            🛡️ ScamShield
+            <span>AI</span>
+
+        </div>
+
+        <a href="/" class="back">
+            ← Back to analyzer
+        </a>
+
+    </nav>
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="eyebrow">
+            MODEL EVALUATION
+        </div>
+
+        <h1>
+            How accurate is ScamShield?
+        </h1>
+
+        <p class="sub">
+            Performance metrics from the actual ScamShield
+            machine-learning model evaluated on unseen test data.
+        </p>
+
+    </section>
+
+
+    <!-- TOP METRICS -->
+
+    <section class="metrics">
+
+
+        <div class="metric">
+
+            <div class="metric-label">
+                ACCURACY
+            </div>
+
+            <div class="metric-value">
+                {{ evaluation.accuracy }}%
+            </div>
+
+        </div>
+
+
+        <div class="metric">
+
+            <div class="metric-label">
+                SCAM PRECISION
+            </div>
+
+            <div class="metric-value">
+                {{ evaluation.scam.precision }}%
+            </div>
+
+        </div>
+
+
+        <div class="metric">
+
+            <div class="metric-label">
+                SCAM RECALL
+            </div>
+
+            <div class="metric-value">
+                {{ evaluation.scam.recall }}%
+            </div>
+
+        </div>
+
+
+        <div class="metric">
+
+            <div class="metric-label">
+                SCAM F1 SCORE
+            </div>
+
+            <div class="metric-value">
+                {{ evaluation.scam.f1 }}%
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+    <!-- MODEL & DATASET -->
+
+    <section class="panel">
+
+        <h2>
+            Model & Dataset
+        </h2>
+
+        <div class="model-box">
+
+
+            <div class="info">
+
+                <div class="info-label">
+                    MODEL
+                </div>
+
+                <div class="info-value">
+                    {{ evaluation.model }}
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="info-label">
+                    TOTAL MESSAGES
+                </div>
+
+                <div class="info-value">
+                    {{ evaluation.dataset_size }}
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="info-label">
+                    TRAINING DATA
+                </div>
+
+                <div class="info-value">
+                    {{ evaluation.training_size }}
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="info-label">
+                    TEST DATA
+                </div>
+
+                <div class="info-value">
+                    {{ evaluation.testing_size }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- DATASET DISTRIBUTION -->
+
+    <section class="panel">
+
+        <h2>
+            Dataset Distribution
+        </h2>
+
+
+        <div class="bar-row">
+
+            <div class="bar-header">
+
+                <span>
+                    Normal messages
+                </span>
+
+                <strong>
+                    {{ evaluation.normal_messages }}
+                </strong>
+
+            </div>
+
+            <div class="bar">
+
+                <div
+                    class="bar-fill"
+                    style="width: {{ (evaluation.normal_messages / evaluation.dataset_size * 100)|round(1) }}%;"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <div class="bar-row">
+
+            <div class="bar-header">
+
+                <span>
+                    Scam / Phishing messages
+                </span>
+
+                <strong>
+                    {{ evaluation.scam_messages }}
+                </strong>
+
+            </div>
+
+            <div class="bar">
+
+                <div
+                    class="bar-fill"
+                    style="width: {{ (evaluation.scam_messages / evaluation.dataset_size * 100)|round(1) }}%;"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- CLASSIFICATION REPORT -->
+
+    <section class="panel">
+
+        <h2>
+            Classification Report
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Class</th>
+
+                    <th>Precision</th>
+
+                    <th>Recall</th>
+
+                    <th>F1 Score</th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                <tr>
+
+                    <td>
+                        Normal
+                    </td>
+
+                    <td>
+                        {{ evaluation.normal.precision }}%
+                    </td>
+
+                    <td>
+                        {{ evaluation.normal.recall }}%
+                    </td>
+
+                    <td>
+                        {{ evaluation.normal.f1 }}%
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td>
+                        Scam / Phishing
+                    </td>
+
+                    <td>
+                        {{ evaluation.scam.precision }}%
+                    </td>
+
+                    <td>
+                        {{ evaluation.scam.recall }}%
+                    </td>
+
+                    <td>
+                        {{ evaluation.scam.f1 }}%
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- CONFUSION MATRIX -->
+
+    <section class="panel">
+
+        <h2>
+            Confusion Matrix
+        </h2>
+
+        <table class="matrix">
+
+            <thead>
+
+                <tr>
+
+                    <th></th>
+
+                    <th>
+                        Predicted Normal
+                    </th>
+
+                    <th>
+                        Predicted Scam
+                    </th>
+
+                </tr>
+
+            </thead>
+
+
+            <tbody>
+
+                <tr>
+
+                    <td class="matrix-label">
+                        Actual Normal
+                    </td>
+
+                    <td>
+                        {{ evaluation.confusion_matrix[0][0] }}
+                    </td>
+
+                    <td>
+                        {{ evaluation.confusion_matrix[0][1] }}
+                    </td>
+
+                </tr>
+
+
+                <tr>
+
+                    <td class="matrix-label">
+                        Actual Scam
+                    </td>
+
+                    <td>
+                        {{ evaluation.confusion_matrix[1][0] }}
+                    </td>
+
+                    <td>
+                        {{ evaluation.confusion_matrix[1][1] }}
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+</div>
+
+</body>
+
+</html>
